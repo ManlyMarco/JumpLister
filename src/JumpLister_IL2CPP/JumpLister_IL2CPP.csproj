@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+		<OutputType>Library</OutputType>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<DebugType>embedded</DebugType>
+		<OutputPath>$(SolutionDir)/bin/JumpLister</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AssemblyName>HCSVS_JumpLister</AssemblyName>
+		<RootNamespace>JumpLister</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.725" />
+		<PackageReference Include="IllusionLibs.HoneyCome.Il2Cppmscorlib" Version="2023.99.12.15" />
+		<PackageReference Include="IllusionLibs.HoneyCome.UnityEngine" Version="2021.3.14.3" />
+		<PackageReference Include="WindowsAPICodePack" Version="8.0.6" GeneratePathProperty="true" />
+	</ItemGroup>
+
+	<!-- Copy necessary dlls from WindowsAPICodePack to output  -->
+	<Target Name="CopyWindowsAPICodePack" AfterTargets="Build">
+		<Copy SourceFiles="$(PkgWindowsAPICodePack)/lib/net6.0-windows7.0/Microsoft.WindowsAPICodePack.Core.dll;$(PkgWindowsAPICodePack)/lib/net6.0-windows7.0/Microsoft.WindowsAPICodePack.Shell.dll" DestinationFolder="$(OutputPath)" />
+	</Target>
+
+	<Target Name="DeleteJson" AfterTargets="Build">
+		<ItemGroup>
+			<FilesToDelete Include="$(OutputPath)*.deps.json" />
+		</ItemGroup>
+		<Delete Files="@(FilesToDelete)" />
+	</Target>
+</Project>

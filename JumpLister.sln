@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JumpLister_IL2CPP", "src\JumpLister_IL2CPP\JumpLister_IL2CPP.csproj", "{CAA6C130-EA98-4E95-A058-854852F9A98A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CAA6C130-EA98-4E95-A058-854852F9A98A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAA6C130-EA98-4E95-A058-854852F9A98A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAA6C130-EA98-4E95-A058-854852F9A98A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAA6C130-EA98-4E95-A058-854852F9A98A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {866B57B1-36E1-48C8-9EFA-D36AC00DA204}
+	EndGlobalSection
+EndGlobal
