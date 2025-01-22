@@ -14,12 +14,12 @@ using UnityEngine;
 
 namespace JumpLister;
 
-[BepInPlugin(GUID, PluginName, Version)]
+[BepInPlugin(GUID, Constants.Name, Constants.Version)]
 public class JumpListerPlugin : BasePlugin
 {
     public const string GUID = "marco.jumplister";
-    public const string PluginName = "JumpLister";
-    public const string Version = "1.0.0";
+    public const string PluginName = Constants.Name;
+    public const string Version = Constants.Version;
 
     public override void Load()
     {
