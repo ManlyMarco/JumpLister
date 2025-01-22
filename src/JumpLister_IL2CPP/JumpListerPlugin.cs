@@ -124,7 +124,12 @@ public class JumpListerPlugin : BasePlugin
         _watcher?.Dispose();
 
         _watchPath = Path.GetFullPath(Path.Combine(Paths.GameRootPath, "UserData"));
-        //Console.WriteLine("watch in " + _watchPath);
+                if (!Directory.Exists(_watchPath))
+                    _watchPath = Path.GetFullPath(Path.Combine(Paths.BepInExRootPath, "..", "UserData"));
+                if (!Directory.Exists(_watchPath))
+                    throw new DirectoryNotFoundException("Could not find the UserData folder");
+
+                Log.LogDebug("Watching for file changes in " + _watchPath);
 
         _watcher = new FileSystemWatcher(_watchPath, "*.png");
         _watcher.IncludeSubdirectories = true;
