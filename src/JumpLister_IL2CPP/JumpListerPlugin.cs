@@ -32,40 +32,16 @@ public class JumpListerPlugin : BasePlugin
         var enabled = Config.Bind("Jump List", "Enable", true, "Add useful items to the game's Jump List (the list of actions you get when right-clicking on the game in your Windows Taskbar).\nThese actions will appear even if the game is turned off if you pin it to your taskbar. To remove them, turn off this setting.");
         var watch = Config.Bind("Jump List", "Show Recently Saved files", true, "Include a list of 10 most recently saved screenshots, cards and scenes (since game start) at the top of the game's Jump List.\nMight slightly affect performance.");
 
-        if (enabled.Value) SetUpJumpList();
-        enabled.SettingChanged += (sender, args) =>
-        {
-            if (enabled.Value)
-            {
-                SetUpJumpList();
-                if (watch.Value) SetUpWatcher();
-            }
-            else if (_jumpList != null)
-            {
-                _jumpList.ClearAllUserTasks();
-                _jumpList.Refresh();
-                _watcher?.Dispose();
-            }
-        };
+        enabled.SettingChanged += (_, _) => SetUpAll();
+        watch.SettingChanged += (_, _) => SetUpAll();
 
-        if (watch.Value) SetUpWatcher();
-        watch.SettingChanged += (sender, args) =>
+        SetUpAll();
+
+        void SetUpAll()
         {
-            if (watch.Value && enabled.Value)
-            {
-                SetUpWatcher();
-            }
-            else if (_watcher != null)
-            {
-                _watcher.Dispose();
-                if (_recentsCategoryInnerList != null && _recentsCategoryInnerList.Count > 0)
-                {
-                    _recentsCategoryInnerList.Clear();
-                    _Recents.Clear();
-                    _jumpList.Refresh();
-                }
-            }
-        };
+            SetUpJumpList(enabled.Value);
+            SetUpWatcher(enabled.Value && watch.Value);
+        }
     }
 
     public override bool Unload()
@@ -79,35 +55,53 @@ public class JumpListerPlugin : BasePlugin
     private JumpList _jumpList;
     private ICollection<IJumpListItem> _recentsCategoryInnerList;
 
-    // TODO?
-    // - option to restart without mods? kill current instance and disable doorstop for a single start
-    // - option to open studio if installed, or to open the game if inside studio
-    private void SetUpJumpList()
+    private void SetUpJumpList(bool enabled)
     {
-        _jumpList = JumpList.CreateJumpListForIndividualWindow(TaskbarManager.Instance.ApplicationId, Process.GetCurrentProcess().MainWindowHandle);
+        if (_jumpList == null)
+            _jumpList = JumpList.CreateJumpListForIndividualWindow(TaskbarManager.Instance.ApplicationId, Process.GetCurrentProcess().MainWindowHandle);
 
-        // Built in recents doesn't work for some reason
-        //JumpList.AddToRecent(Path.GetFullPath(Path.Combine(Paths.GameRootPath, "UserData/chara/female/HC_F_000.png")));
-        _jumpList.KnownCategoryToDisplay = JumpListKnownCategoryType.Neither;
+        if (enabled)
+        {
+            try
+            {
+                // Built in recents doesn't work for some reason
+                //JumpList.AddToRecent(Path.GetFullPath(Path.Combine(Paths.GameRootPath, "UserData/chara/female/HC_F_000.png")));
+                _jumpList.KnownCategoryToDisplay = JumpListKnownCategoryType.Neither;
 
-        // Create the category even if recents are disabled since it won't show up if it's empty. 
-        var recentsCategory = new JumpListCustomCategory("Recently saved (show in explorer)");
-        _recentsCategoryInnerList = (ICollection<IJumpListItem>)recentsCategory.GetType().GetProperty("JumpListItems", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(recentsCategory) ?? throw new MemberNotFoundException("JumpListItems not found");
+                // Create the category even if recents are disabled since it won't show up if it's empty. 
+                var recentsCategory = new JumpListCustomCategory("Recently saved (show in explorer)");
+                _recentsCategoryInnerList = (ICollection<IJumpListItem>)recentsCategory.GetType().GetProperty("JumpListItems", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)?.GetValue(recentsCategory) ?? throw new MemberNotFoundException("JumpListItems not found");
 
-        var bepinexCategory = new JumpListCustomCategory("BepInEx");
-        bepinexCategory.AddDirectoryOpen("Config folder", "BepInEx/config");
-        bepinexCategory.AddDirectoryOpen("Plugins folder", "BepInEx/plugins");
-        bepinexCategory.AddFileOpen("Open LogOutput.log", "BepInEx/LogOutput.log", true);
-        bepinexCategory.AddFileOpen("Open ErrorLog.log", "BepInEx/ErrorLog.log", true);
-        //bepinexCategory.AddFileShowInExplorer("test6", "UserData/chara/female/HC_F_000.png", true, new IconReference(Paths.ExecutablePath, 0));
+                var bepinexCategory = new JumpListCustomCategory("BepInEx");
+                bepinexCategory.AddDirectoryOpen("Config folder", "BepInEx/config");
+                bepinexCategory.AddDirectoryOpen("Plugins folder", "BepInEx/plugins");
+                bepinexCategory.AddFileOpen("Open LogOutput.log", "BepInEx/LogOutput.log", true);
+                bepinexCategory.AddFileOpen("Open ErrorLog.log", "BepInEx/ErrorLog.log", true);
+                //bepinexCategory.AddFileShowInExplorer("test6", "UserData/chara/female/HC_F_000.png", true, new IconReference(Paths.ExecutablePath, 0));
 
-        var userDataCategory = new JumpListCustomCategory("UserData folders");
-        userDataCategory.AddDirectoryOpen("Screenshots", "UserData/cap");
-        userDataCategory.AddDirectoryOpen("Characters", "UserData/chara");
-        userDataCategory.AddDirectoryOpen("Coordinates", "UserData/coordinate");
-        userDataCategory.AddDirectoryOpen("Studio scenes", "UserData/craft/scene", true);
+                var userDataCategory = new JumpListCustomCategory("UserData folders");
+                userDataCategory.AddDirectoryOpen("Screenshots", "UserData/cap");
+                userDataCategory.AddDirectoryOpen("Characters", "UserData/chara");
+                userDataCategory.AddDirectoryOpen("Coordinates", "UserData/coordinate");
+                userDataCategory.AddDirectoryOpen("Studio scenes", "UserData/craft/scene", true);
 
-        _jumpList.AddCustomCategories(recentsCategory, bepinexCategory, userDataCategory);
+                // TODO?
+                // - option to restart without mods? kill current instance and disable doorstop for a single start
+                // - option to open studio if installed, or to open the game if inside studio
+
+                _jumpList.AddCustomCategories(recentsCategory, bepinexCategory, userDataCategory);
+            }
+            catch (Exception e)
+            {
+                Log.LogError("Failed to enable the jump list: " + e);
+                _jumpList.ClearJumpList();
+            }
+        }
+        else
+        {
+            _jumpList.ClearJumpList();
+        }
+
         _jumpList.Refresh();
     }
 
@@ -119,11 +113,15 @@ public class JumpListerPlugin : BasePlugin
     private FileSystemWatcher _watcher;
     private string _watchPath;
 
-    private void SetUpWatcher()
+    private void SetUpWatcher(bool enabled)
     {
         _watcher?.Dispose();
 
-        _watchPath = Path.GetFullPath(Path.Combine(Paths.GameRootPath, "UserData"));
+        if (enabled)
+        {
+            try
+            {
+                _watchPath = Path.GetFullPath(Path.Combine(Paths.GameRootPath, "UserData"));
                 if (!Directory.Exists(_watchPath))
                     _watchPath = Path.GetFullPath(Path.Combine(Paths.BepInExRootPath, "..", "UserData"));
                 if (!Directory.Exists(_watchPath))
@@ -131,12 +129,25 @@ public class JumpListerPlugin : BasePlugin
 
                 Log.LogDebug("Watching for file changes in " + _watchPath);
 
-        _watcher = new FileSystemWatcher(_watchPath, "*.png");
-        _watcher.IncludeSubdirectories = true;
-        _watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName;
-        _watcher.Changed += WatcherEvent; // Fires for both new files and overwrites
-        _watcher.EnableRaisingEvents = true;
-        _watcher.SynchronizingObject = null; // Run on threadpool
+                _watcher = new FileSystemWatcher(_watchPath, "*.png");
+                _watcher.IncludeSubdirectories = true;
+                _watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName;
+                _watcher.Changed += WatcherEvent; // Fires for both new files and overwrites
+                _watcher.EnableRaisingEvents = true;
+                _watcher.SynchronizingObject = null; // Run on threadpool
+            }
+            catch (Exception e)
+            {
+                Log.LogError("Failed to enable the recently changed file watcher: " + e);
+                _watcher?.Dispose();
+            }
+        }
+        else
+        {
+            _Recents.Clear();
+            _recentsCategoryInnerList?.Clear();
+            _jumpList?.Refresh();
+        }
     }
 
     private void WatcherEvent(object sender, FileSystemEventArgs e)

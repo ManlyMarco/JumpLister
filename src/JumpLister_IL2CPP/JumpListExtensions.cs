@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using System.IO;
+using HarmonyLib;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Taskbar;
 
@@ -54,6 +55,12 @@ namespace JumpLister
             capFolder.IconReference = icon;
 
             category.AddJumpListItems(capFolder);
+        }
+
+        public static void ClearJumpList(this JumpList jumpList)
+        {
+            jumpList.ClearAllUserTasks();
+            Traverse.Create(jumpList).Field("_customCategoriesCollection").Method("Clear").GetValue();
         }
     }
 }
