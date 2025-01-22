@@ -60,6 +60,8 @@ public class JumpListerPlugin : BasePlugin
         if (_jumpList == null)
             _jumpList = JumpList.CreateJumpListForIndividualWindow(TaskbarManager.Instance.ApplicationId, Process.GetCurrentProcess().MainWindowHandle);
 
+        _jumpList.ClearJumpList();
+
         if (enabled)
         {
             try
@@ -96,10 +98,6 @@ public class JumpListerPlugin : BasePlugin
                 Log.LogError("Failed to enable the jump list: " + e);
                 _jumpList.ClearJumpList();
             }
-        }
-        else
-        {
-            _jumpList.ClearJumpList();
         }
 
         _jumpList.Refresh();
